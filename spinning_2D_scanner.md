@@ -220,7 +220,7 @@ Working on the graph was what helped me notice the problem with the original cod
 
 I used Excel to organize the angle and distance measurements, calculate the X and Y coordinates, and create a 2D visualization of the scan.
 
-[View my Excel data and graph](Scanner.xlsx)
+[View my Excel data and graph](files/Scanner.xlsx)
 
 ## Reflection
 
