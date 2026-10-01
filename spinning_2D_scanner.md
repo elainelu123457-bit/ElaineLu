@@ -216,6 +216,12 @@ After changing the code, I organized the Serial Monitor data in Excel using one 
 
 Working on the graph was what helped me notice the problem with the original code. Watching the scanner move made it seem like it was working, but once I tried to graph the results, I realized that we needed to record the angle at the same time as each distance measurement.
 
+### Data and Graph
+
+I used Excel to organize the angle and distance measurements, calculate the X and Y coordinates, and create a 2D visualization of the scan.
+
+[View my Excel data and graph](Scanner.xlsx)
+
 ## Reflection
 
 All three of us worked on writing and testing the code, while Michelle and Cecilia did most of the physical assembly. I focused more on the angle and distance data and modifying the code once I noticed the problem while making the graph.
