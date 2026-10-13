@@ -1,39 +1,41 @@
-# Piano Tiles – Game Code Autopsy
+# Game Autopsy: Piano Tiles
 
-## Game Overview
+## 1. Project Overview
 
-For this activity, I created a simple **Piano Tiles** game with the help of ChatGPT. The game uses HTML, CSS, and JavaScript and runs directly in a web browser.
+For this project, I used ChatGPT to generate a Piano Tiles game using HTML, CSS, and JavaScript. The objective is to press the correct keys when falling tiles reach the hit zone. Each successful hit earns one point, while missing a tile or pressing the wrong key ends the game.
 
-The game has four lanes controlled by the **F, G, H, and J** keys. Tiles move down the screen, and the player has to press the corresponding key while a tile is inside the hit zone. Sometimes two tiles appear simultaneously, and the game gradually gets faster. The player has five lives before the game ends.
+I wanted the game to be simple enough to understand and modify, so I asked ChatGPT to use basic shapes instead of images and to keep everything in a single HTML file.
 
-## AI-Assisted Development
+The game includes:
+- Four lanes controlled by the F, G, H, and J keys.
+- Falling rectangular tiles.
+- A highlighted hit zone near the bottom of the screen.
+- A score counter.
+- A chance for two tiles to appear simultaneously.
+- Gradually increasing difficulty as the tiles move faster.
+- A Play/Replay button.
 
-I used **ChatGPT to generate the code** for my game. I described the game I wanted, including its mechanics, controls, appearance, and features, and AI wrote the HTML, CSS, and JavaScript.
-
-After running the game, I tested it and asked AI to make several changes, including:
-- Changing the background to blue.
-- Adjusting the starting speed and acceleration.
-- Changing the controls to F, G, H, and J.
-- Adding the possibility of two simultaneous tiles.
-- Changing the game-over system to allow five mistakes.
-
-For this code autopsy, I examined the AI-generated code to understand what each major part does and how the different functions work together.
-
-Although AI generated the code, I made the design decisions, tested the gameplay, requested modifications, and worked to understand how the program functions.
+ChatGPT generated the code based on my instructions. I tested the game, requested changes, adjusted the difficulty, and analyzed how different parts of the code worked.
 
 ---
 
-## 1. HTML, CSS, and JavaScript
+## 2. Programming Languages and Structure
 
-My game is contained in **one HTML file**, but it uses three different parts:
+The game uses HTML, CSS, and JavaScript.
 
-- **HTML** creates the webpage and the canvas where the game appears.
-- **CSS** controls the appearance of the webpage, including its colors, positioning, and borders.
-- **JavaScript** controls the actual game mechanics, including tile movement, keyboard input, scoring, lives, and game-over logic.
+### HTML
 
-Most of the game is written in JavaScript.
+HTML creates the basic structure of the webpage, including the canvas where the game appears.
 
-### Example CSS
+```html
+<canvas id="game" width="600" height="700"></canvas>
+```
+
+This creates a canvas that is 600 pixels wide and 700 pixels tall. JavaScript draws the game inside this canvas.
+
+### CSS
+
+CSS controls the appearance of the webpage.
 
 ```css
 body {
@@ -41,91 +43,105 @@ body {
     background: #263746;
     font-family: Arial;
 }
+
+canvas {
+    display: block;
+    margin: 25px auto;
+    border: 4px solid white;
+}
 ```
 
-This sets the background color and font of the webpage.
+The `background` property sets the dark blue background, while `margin: 25px auto` centers the canvas horizontally.
 
----
+### JavaScript
 
-## 2. The Canvas
-
-```html
-<canvas id="game" width="600" height="700"></canvas>
-```
-
-The canvas is the area where the game is drawn. Mine is **600 pixels wide and 700 pixels tall**.
-
-JavaScript connects to the canvas using:
+JavaScript controls the game's behavior, including moving tiles, detecting keyboard input, registering hits, and calculating the score.
 
 ```javascript
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 ```
 
-`ctx` allows JavaScript to draw shapes and text on the canvas.
-
-If I changed the canvas width or height, the visible game area would become larger or smaller. However, I might also need to adjust the positions of other objects so everything still lines up correctly.
+The first line finds the canvas element using its ID. The second line creates a 2D drawing context, allowing JavaScript to draw shapes and text onto the canvas.
 
 ---
 
-## 3. State Variables
+## 3. Understanding the Code
+
+### A. Variables and Game State
+
+The game uses variables to store information about its current state.
 
 ```javascript
 let tiles = [];
 let score = 0;
-let lives = 5;
 let speed = 5.5;
 let timer = 0;
 let playing = false;
 let gameOver = false;
 ```
 
-These variables keep track of the current state of the game.
+- `tiles = []` creates an empty array that stores the falling tiles.
+- `score = 0` tracks the player's points.
+- `speed = 5.5` determines how quickly tiles move downward.
+- `timer = 0` controls when new tiles appear.
+- `playing = false` indicates whether the game is currently running.
+- `gameOver = false` records whether the player has lost.
 
-- `tiles` stores all the tiles currently on the screen.
-- `score` stores the number of successful hits.
-- `lives` stores how many mistakes the player can still make.
-- `speed` controls how fast the tiles fall.
-- `timer` controls when new tiles appear.
-- `playing` determines whether the game is currently running.
-- `gameOver` determines whether the player has lost.
-
-These variables are declared near the beginning of the JavaScript code.
-
----
-
-## 4. Creating and Moving Tiles
-
-Each tile stores its lane and vertical position:
+When the player starts or restarts the game, the `startGame()` function resets these variables.
 
 ```javascript
-tiles.push({
-    lane: lane1,
-    y: 250
-});
+function startGame() {
+    tiles = [];
+    score = 0;
+    speed = 5.5;
+    timer = 0;
+    playing = true;
+    gameOver = false;
+}
 ```
 
-`lane` determines which of the four columns the tile appears in, while `y` determines its vertical position.
+This ensures that each new game begins with an empty board, a score of zero, and the original starting speed.
 
-The tiles move using:
+### B. Creating Falling Tiles
+
+The `makeTiles()` function generates new tiles.
 
 ```javascript
-tiles[i].y += speed;
+function makeTiles() {
+    let lane1 = Math.floor(Math.random() * 4);
+
+    tiles.push({
+        lane: lane1,
+        y: 250
+    });
+
+    if (Math.random() < 0.60) {
+        let lane2 = Math.floor(Math.random() * 4);
+
+        while (lane2 === lane1) {
+            lane2 = Math.floor(Math.random() * 4);
+        }
+
+        tiles.push({
+            lane: lane2,
+            y: 250
+        });
+    }
+}
 ```
 
-Every time the game updates, the tile's y-position increases. Since larger y-values are farther down the canvas, this makes the tile move downward.
+First, `Math.random()` generates a random decimal between 0 and 1. Multiplying it by 4 and applying `Math.floor()` produces an integer from 0 to 3, corresponding to one of the four lanes.
 
-The game also gradually increases its speed:
+The `tiles.push()` statement adds a new tile to the `tiles` array. Each tile is represented by an object containing its lane and vertical position.
 
-```javascript
-speed += 0.002;
-```
+The second part of the function gives the game a 60% chance of generating another tile at the same time.
 
-This makes the game progressively harder.
+The `while` loop ensures that the second tile appears in a different lane from the first one. Without this loop, two tiles could be generated in the same lane and overlap.
 
----
+### C. Game Loop and Tile Movement
 
-## 5. The Game Loop
+The game uses a function called `gameLoop()` to continuously update and redraw the screen.
 
 ```javascript
 function gameLoop() {
@@ -137,33 +153,47 @@ function gameLoop() {
 gameLoop();
 ```
 
-`gameLoop()` is the main function that runs repeatedly.
+The `update()` function changes the game state, while `draw()` displays the updated game.
 
-It calls three important functions:
+`requestAnimationFrame(gameLoop)` tells the browser to run the function again before the next screen repaint. This creates continuous animation.
 
-- `update()` changes the game state by moving tiles, increasing speed, creating new tiles, and checking for misses.
-- `draw()` redraws the game so the player can see the changes.
-- `requestAnimationFrame(gameLoop)` tells the browser to run the loop again on the next animation frame.
+Inside `update()`, the following code controls tile movement:
 
-This usually happens around 60 times per second, depending on the browser and display.
+```javascript
+timer++;
 
-The basic process is:
+if (timer >= 50) {
+    makeTiles();
+    timer = 0;
+}
 
-**Update → Draw → Next Frame → Repeat**
+speed += 0.002;
 
----
+for (let tile of tiles) {
+    tile.y += speed;
 
-## 6. Input Handling
+    if (tile.y > hitY + hitHeight) {
+        playing = false;
+        gameOver = true;
+    }
+}
+```
 
-The controls are stored in an array:
+The timer increases every frame. Once it reaches 50, the game generates new tiles and resets the timer.
+
+`speed += 0.002` gradually increases the falling speed, making the game more difficult over time.
+
+The `for...of` loop goes through every tile in the array. Each frame, `tile.y += speed` increases the tile's vertical position, making it move downward.
+
+If a tile passes below the hit zone without being hit, the game ends.
+
+### D. Keyboard Input
+
+The game detects keyboard input using an event listener.
 
 ```javascript
 const keys = ["f", "g", "h", "j"];
-```
 
-JavaScript detects keyboard input using an event listener:
-
-```javascript
 document.addEventListener("keydown", function(event) {
     let key = event.key.toLowerCase();
     let lane = keys.indexOf(key);
@@ -174,236 +204,238 @@ document.addEventListener("keydown", function(event) {
 });
 ```
 
-When I press a key, the program finds its position in the `keys` array.
+The `keys` array stores the four controls in order.
 
-- F = lane 0
-- G = lane 1
-- H = lane 2
-- J = lane 3
+When the player presses a key, the `keydown` event listener runs.
 
-The program then calls `pressLane()` to check whether the player successfully hit a tile in that lane.
+`event.key.toLowerCase()` converts the pressed key to lowercase so that the program recognizes it consistently.
 
----
+`keys.indexOf(key)` searches the array for the pressed key and returns its position:
 
-## 7. Hit Zone and Collision Detection
+- F corresponds to lane 0.
+- G corresponds to lane 1.
+- H corresponds to lane 2.
+- J corresponds to lane 3.
 
-The hit zone is defined by:
+If the key is not in the array, `indexOf()` returns `-1`, and the game ignores it.
 
-```javascript
-const hitY = 540;
-const hitHeight = 110;
-```
+Otherwise, the program calls `pressLane(lane)` to check whether the player successfully hit a tile.
 
-The hit zone begins at y = 540 and is 110 pixels tall.
+### E. Hit Detection and Scoring
 
-The program checks whether a tile overlaps this area:
+The `pressLane()` function determines whether a key press counts as a successful hit.
 
 ```javascript
-let inHitZone =
-    tile.y + tileHeight >= hitY &&
-    tile.y <= hitY + hitHeight;
-```
+function pressLane(lane) {
+    if (!playing) return;
 
-The first condition checks whether the bottom of the tile has reached the hit zone. The second checks whether the top of the tile has not passed the bottom of the hit zone.
+    for (let i = 0; i < tiles.length; i++) {
+        let tile = tiles[i];
 
-Both conditions must be true for the tile to overlap the hit zone.
+        let inHitZone =
+            tile.y + tileHeight >= hitY &&
+            tile.y <= hitY + hitHeight;
 
-The program also checks whether the player pressed the correct lane:
+        if (tile.lane === lane && inHitZone) {
+            tiles.splice(i, 1);
+            score++;
+            return;
+        }
+    }
 
-```javascript
-if (tile.lane === lane && inHitZone) {
-    tiles.splice(i, 1);
-    score++;
-    return;
+    playing = false;
+    gameOver = true;
 }
 ```
 
-A successful hit requires both the **correct lane and correct timing**.
+First, `if (!playing) return;` prevents the function from registering hits when the game is not running.
 
----
+The `for` loop checks the tiles stored in the array.
 
-## 8. Scoring
+The `inHitZone` variable checks whether a tile overlaps the hit zone. It compares the bottom of the tile with the top of the hit zone and the top of the tile with the bottom of the hit zone.
 
-The score is stored in this variable:
+The next `if` statement checks two conditions:
 
 ```javascript
-let score = 0;
+if (tile.lane === lane && inHitZone)
 ```
 
-When the player correctly hits a tile:
+1. The tile must be in the lane corresponding to the key pressed.
+2. The tile must overlap the hit zone.
+
+The `&&` operator means both conditions must be true.
+
+If the hit is successful:
 
 ```javascript
 tiles.splice(i, 1);
 score++;
+return;
 ```
 
-`tiles.splice(i, 1)` removes the tile from the array.
+- `tiles.splice(i, 1)` removes the successfully hit tile from the array.
+- `score++` increases the score by one.
+- `return` exits the function so that one key press only registers one hit.
 
-`score++` increases the score by one.
+If no matching tile is found, the code sets `playing` to `false` and `gameOver` to `true`, ending the game.
 
-The updated score is then displayed on the canvas.
+This same function also allows players to hit double tiles. Each key press is processed separately, so two tiles can be hit within the same hit window.
 
----
+### F. Drawing the Game
 
-## 9. Lives and Game-Over Logic
+The game uses the canvas drawing context to display tiles and other elements.
 
-The game starts with five lives:
-
-```javascript
-let lives = 5;
-```
-
-When the player makes a mistake, this function runs:
+For example:
 
 ```javascript
-function loseLife() {
-    lives--;
+function drawTiles() {
+    ctx.fillStyle = DARK;
 
-    if (lives <= 0) {
-        playing = false;
-        gameOver = true;
+    for (let tile of tiles) {
+        ctx.fillRect(
+            tile.lane * laneWidth + 5,
+            tile.y,
+            laneWidth - 10,
+            tileHeight
+        );
     }
 }
 ```
 
-`lives--` subtracts one life.
+`ctx.fillRect()` draws a rectangle using four values: its horizontal position, vertical position, width, and height.
 
-The program checks whether the number of lives is less than or equal to zero.
-
-If it is, `playing` becomes `false` and `gameOver` becomes `true`, ending the game.
-
-A mistake occurs when the player presses an incorrect key or lets a tile pass the hit zone.
-
----
-
-## 10. Double Tiles
-
-I also added the possibility of two tiles appearing simultaneously.
+The horizontal position depends on the tile's lane:
 
 ```javascript
-if (Math.random() < 0.60) {
+tile.lane * laneWidth + 5
 ```
 
-`Math.random()` generates a random number between 0 and 1.
+This places each tile in the correct column.
 
-Since the program checks whether this number is below `0.60`, there is approximately a **60% chance** of creating a second tile.
+The vertical position is determined by `tile.y`, which increases as the tile falls.
 
-The program also makes sure the second tile appears in a different lane:
+The `draw()` function calls the different drawing functions in order:
 
 ```javascript
-while (lane2 === lane1) {
-    lane2 = Math.floor(Math.random() * 4);
+function draw() {
+    drawBackground();
+    drawBoard();
+    drawTiles();
+    drawKeys();
+    drawScore();
+    drawMenu();
 }
 ```
 
-The `while` loop keeps choosing another lane until it is different from the first one.
+By redrawing these elements every frame, the game creates the appearance of moving tiles.
 
 ---
 
-## 11. Deliberate Change – Adding Five Lives
+## 4. Changes I Made
 
-One of the changes I made during development was modifying the game-over system.
+Although ChatGPT generated the code, I tested the game and requested specific changes to improve the gameplay.
 
-Originally, the game ended immediately when the player missed a tile or pressed the wrong key.
+### Change 1: Keyboard Controls
 
-I wanted to make the game more forgiving, so I asked ChatGPT to modify the code to allow five mistakes before game over.
+**Original controls:** D, F, J, K
 
-### Original Behavior
+**Final controls:** F, G, H, J
 
-The original game ended immediately after a mistake:
+I changed the controls because I found it more comfortable to use four adjacent keys.
 
-```javascript
-playing = false;
-gameOver = true;
-```
-
-### Updated Code
-
-The modified version introduces a new state variable:
+The final code uses:
 
 ```javascript
-let lives = 5;
+const keys = ["f", "g", "h", "j"];
+const keyLabels = ["F", "G", "H", "J"];
 ```
 
-It also uses a new function:
+The first array determines which keyboard inputs the game recognizes, while the second array controls the labels displayed on the screen.
+
+This change helped me understand how arrays can connect user input to different parts of a game.
+
+### Change 2: Adding Double Tiles
+
+Originally, the game only generated one tile at a time. I wanted to make it more challenging by occasionally requiring players to press two keys at nearly the same time.
+
+I asked ChatGPT to modify the tile-generation function so that it could create two tiles in different lanes.
+
+The code uses:
 
 ```javascript
-function loseLife() {
-    lives--;
-
-    if (lives <= 0) {
-        playing = false;
-        gameOver = true;
-    }
-}
+if (Math.random() < 0.60)
 ```
 
-Instead of immediately ending the game, the program calls:
+I initially tested a probability of 35%:
 
 ```javascript
-loseLife();
+if (Math.random() < 0.35)
 ```
 
-### Effect of the Change
+However, I noticed that double tiles did not appear frequently enough, so I increased the probability to 60%.
 
-Before the change:
+I also examined the `while` loop that prevents both tiles from appearing in the same lane.
 
-**1 mistake → Game Over**
+This change helped me understand how random numbers and loops can be used to create variation in gameplay.
 
-After the change:
+### Change 3: Adjusting Speed
 
-**Mistake → Lose 1 life → Continue playing → Game Over after 5 mistakes**
+I experimented with different starting speeds because some versions were too slow while others were too difficult.
 
-This modification changes the game's difficulty and allows players to recover from occasional mistakes.
+I eventually settled on:
 
-It also helped me understand how state variables and conditional statements control the game's behavior.
+```javascript
+let speed = 5.5;
+```
+
+The code also gradually increases the speed:
+
+```javascript
+speed += 0.002;
+```
+
+Since this statement runs every frame while the game is active, the tiles move faster as the game continues.
+
+I learned that even small changes to numerical values can significantly affect how a game feels.
 
 ---
 
-## 12. Three Important Parts of My Code
+## 5. Testing and Debugging
 
-### 1. The Game Loop
+I tested the game multiple times after generating and modifying the code.
 
-```javascript
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-```
+| Test | Observation | Adjustment |
+|---|---|---|
+| Original controls | The keys felt less comfortable to use. | Changed D, F, J, K to F, G, H, J. |
+| Single tiles | The game felt too simple with only one tile at a time. | Added the possibility of double tiles. |
+| 35% double-tile probability | Double tiles did not appear frequently enough. | Increased the probability to 60%. |
+| Higher starting speeds | Tiles moved too quickly to react comfortably. | Reduced the starting speed to 5.5. |
+| Lower starting speeds | Gameplay felt too slow. | Kept gradual acceleration to increase difficulty. |
 
-This repeatedly updates and redraws the game, creating the movement and animation.
+I also had to figure out how to run the game correctly on my Mac.
 
-### 2. The Hit-Zone Comparison
+Initially, I had problems with file formats when trying to save the code. I learned that the file needed to be saved as `.html` rather than `.rtf` or `.txt` so that the browser would interpret it as a webpage.
 
-```javascript
-let inHitZone =
-    tile.y + tileHeight >= hitY &&
-    tile.y <= hitY + hitHeight;
-```
-
-This checks whether a tile is in the correct position to be hit.
-
-### 3. The Keyboard Input
-
-```javascript
-let lane = keys.indexOf(key);
-
-if (lane !== -1) {
-    pressLane(lane);
-}
-```
-
-This converts the key pressed by the player into a lane number and checks whether the player successfully hit a tile.
+I eventually used Terminal and a text editor to save and open the HTML file.
 
 ---
 
-## Reflection
+## 6. Reflection
 
-This project helped me better understand how HTML, CSS, and JavaScript work together to create a browser game.
+Through this project, I learned more about how JavaScript uses arrays, loops, conditional statements, and event listeners to create an interactive game. I found the hit-detection system particularly interesting because it checks both the tile's position and the player's keyboard input before registering a successful hit.
 
-Although ChatGPT generated the code, I was able to examine its structure and identify the functions responsible for movement, input handling, collision detection, scoring, and game-over logic.
+Testing different versions of the game also helped me understand how small changes in the code can significantly affect gameplay. For example, increasing the probability of double tiles from 35% to 60% made the game more challenging, while adjusting the speed made it more playable.
 
-I also learned that changing a relatively small part of the code, such as the number of lives or the speed, can significantly affect the gameplay.
+After seeing my classmates present their games, I also noticed how much sound effects, animations, and visual details could improve the overall experience. Although my game functions as intended, it currently has a relatively simple design compared to some of the games I saw. This made me realize that creating a working game is only one part of the process, and that presentation and user experience are also important.
 
-Overall, this activity helped me understand how different programming concepts, including **variables, arrays, loops, functions, conditional statements, and event listeners**, work together in a functioning game.
+---
+
+## 7. Goals for Next Class
+
+After seeing my classmates' games, I want to focus on making my Piano Tiles game more interactive and visually appealing.
+
+My first goal is to **add sound effects**, especially different piano notes for each lane when a tile is successfully hit. I also want to add a sound effect for missed tiles to provide clearer feedback to the player.
+
+My second goal is to **improve the graphics and animations**. I want to experiment with more detailed tiles, a better background, and visual effects when players successfully hit a tile. I think these changes would make the game feel more polished and engaging.
+
+Next class, I plan to use ChatGPT to help me implement these features, test them individually, and examine the new code to understand how sound and animation work in JavaScript.
