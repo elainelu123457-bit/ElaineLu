@@ -12,10 +12,10 @@ The game includes:
 - A highlighted hit zone near the bottom of the screen.
 - A score counter.
 - A chance for two tiles to appear simultaneously.
-- Gradually increasing difficulty as the tiles move faster.
+- Tiles that gradually move faster as the game continues.
 - A Play/Replay button.
 
-ChatGPT generated the code based on my instructions. I tested the game, requested changes, adjusted the difficulty, and analyzed how different parts of the code worked.
+ChatGPT generated the code based on my instructions. I tested the game, requested changes, and analyzed how different parts of the code worked.
 
 ---
 
@@ -181,7 +181,7 @@ for (let tile of tiles) {
 
 The timer increases every frame. Once it reaches 50, the game generates new tiles and resets the timer.
 
-`speed += 0.002` gradually increases the falling speed, making the game more difficult over time.
+`speed += 0.002` gradually increases the falling speed, making the game more difficult over time. This was part of the generated game's mechanics rather than a separate change I made.
 
 The `for...of` loop goes through every tile in the array. Each frame, `tile.y += speed` increases the tile's vertical position, making it move downward.
 
@@ -378,26 +378,6 @@ I also examined the `while` loop that prevents both tiles from appearing in the 
 
 This change helped me understand how random numbers and loops can be used to create variation in gameplay.
 
-### Change 3: Adjusting Speed
-
-I experimented with different starting speeds because some versions were too slow while others were too difficult.
-
-I eventually settled on:
-
-```javascript
-let speed = 5.5;
-```
-
-The code also gradually increases the speed:
-
-```javascript
-speed += 0.002;
-```
-
-Since this statement runs every frame while the game is active, the tiles move faster as the game continues.
-
-I learned that even small changes to numerical values can significantly affect how a game feels.
-
 ---
 
 ## 5. Testing and Debugging
@@ -409,8 +389,6 @@ I tested the game multiple times after generating and modifying the code.
 | Original controls | The keys felt less comfortable to use. | Changed D, F, J, K to F, G, H, J. |
 | Single tiles | The game felt too simple with only one tile at a time. | Added the possibility of double tiles. |
 | 35% double-tile probability | Double tiles did not appear frequently enough. | Increased the probability to 60%. |
-| Higher starting speeds | Tiles moved too quickly to react comfortably. | Reduced the starting speed to 5.5. |
-| Lower starting speeds | Gameplay felt too slow. | Kept gradual acceleration to increase difficulty. |
 
 I also had to figure out how to run the game correctly on my Mac.
 
@@ -424,7 +402,7 @@ I eventually used Terminal and a text editor to save and open the HTML file.
 
 Through this project, I learned more about how JavaScript uses arrays, loops, conditional statements, and event listeners to create an interactive game. I found the hit-detection system particularly interesting because it checks both the tile's position and the player's keyboard input before registering a successful hit.
 
-Testing different versions of the game also helped me understand how small changes in the code can significantly affect gameplay. For example, increasing the probability of double tiles from 35% to 60% made the game more challenging, while adjusting the speed made it more playable.
+Testing different versions of the game also helped me understand how small changes in the code can significantly affect gameplay. For example, increasing the probability of double tiles from 35% to 60% made the game more challenging.
 
 After seeing my classmates present their games, I also noticed how much sound effects, animations, and visual details could improve the overall experience. Although my game functions as intended, it currently has a relatively simple design compared to some of the games I saw. This made me realize that creating a working game is only one part of the process, and that presentation and user experience are also important.
 
@@ -439,3 +417,276 @@ My first goal is to **add sound effects**, especially different piano notes for 
 My second goal is to **improve the graphics and animations**. I want to experiment with more detailed tiles, a better background, and visual effects when players successfully hit a tile. I think these changes would make the game feel more polished and engaging.
 
 Next class, I plan to use ChatGPT to help me implement these features, test them individually, and examine the new code to understand how sound and animation work in JavaScript.
+
+---
+
+## 8. Source Code Bank
+
+Below is the complete source code for my Piano Tiles game. ChatGPT generated the code based on my instructions, and I tested and requested changes to the keyboard controls and double-tile mechanics.
+
+**File name:** `piano_tiles.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Piano Tiles</title>
+    <style>
+        body {
+            margin: 0;
+            background: #263746;
+            font-family: Arial;
+        }
+
+        canvas {
+            display: block;
+            margin: 25px auto;
+            border: 4px solid white;
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="game" width="600" height="700"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const BLUE = "#405e70";
+const CREAM = "#fff0d2";
+const DARK = "#333333";
+const LIGHT_BLUE = "#dce4e7";
+
+const laneWidth = 150;
+const tileHeight = 90;
+
+const keys = ["f", "g", "h", "j"];
+const keyLabels = ["F", "G", "H", "J"];
+
+const hitY = 540;
+const hitHeight = 110;
+
+let tiles = [];
+let score = 0;
+let speed = 5.5;
+let timer = 0;
+let playing = false;
+let gameOver = false;
+
+function startGame() {
+    tiles = [];
+    score = 0;
+    speed = 5.5;
+    timer = 0;
+    playing = true;
+    gameOver = false;
+}
+
+function makeTiles() {
+    let lane1 = Math.floor(Math.random() * 4);
+
+    tiles.push({
+        lane: lane1,
+        y: 250
+    });
+
+    if (Math.random() < 0.60) {
+        let lane2 = Math.floor(Math.random() * 4);
+
+        while (lane2 === lane1) {
+            lane2 = Math.floor(Math.random() * 4);
+        }
+
+        tiles.push({
+            lane: lane2,
+            y: 250
+        });
+    }
+}
+
+function update() {
+    if (!playing) return;
+
+    timer++;
+
+    if (timer >= 50) {
+        makeTiles();
+        timer = 0;
+    }
+
+    speed += 0.002;
+
+    for (let tile of tiles) {
+        tile.y += speed;
+
+        if (tile.y > hitY + hitHeight) {
+            playing = false;
+            gameOver = true;
+        }
+    }
+}
+
+function pressLane(lane) {
+    if (!playing) return;
+
+    for (let i = 0; i < tiles.length; i++) {
+        let tile = tiles[i];
+
+        let inHitZone =
+            tile.y + tileHeight >= hitY &&
+            tile.y <= hitY + hitHeight;
+
+        if (tile.lane === lane && inHitZone) {
+            tiles.splice(i, 1);
+            score++;
+            return;
+        }
+    }
+
+    playing = false;
+    gameOver = true;
+}
+
+function drawBackground() {
+    ctx.fillStyle = BLUE;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawBoard() {
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(0, 250, canvas.width, 450);
+
+    ctx.strokeStyle = DARK;
+    ctx.lineWidth = 2;
+
+    for (let i = 1; i < 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * laneWidth, 250);
+        ctx.lineTo(i * laneWidth, 700);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = LIGHT_BLUE;
+    ctx.fillRect(0, hitY, canvas.width, hitHeight);
+
+    ctx.strokeStyle = BLUE;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(0, hitY, canvas.width, hitHeight);
+}
+
+function drawTiles() {
+    ctx.fillStyle = DARK;
+
+    for (let tile of tiles) {
+        ctx.fillRect(
+            tile.lane * laneWidth + 5,
+            tile.y,
+            laneWidth - 10,
+            tileHeight
+        );
+    }
+}
+
+function drawKeys() {
+    ctx.fillStyle = BLUE;
+    ctx.font = "bold 30px Arial";
+    ctx.textAlign = "center";
+
+    for (let i = 0; i < 4; i++) {
+        ctx.fillText(
+            keyLabels[i],
+            i * laneWidth + laneWidth / 2,
+            620
+        );
+    }
+}
+
+function drawScore() {
+    ctx.textAlign = "left";
+    ctx.fillStyle = CREAM;
+    ctx.font = "bold 24px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+}
+
+function drawMenu() {
+    if (playing) return;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = CREAM;
+
+    ctx.font = "bold 48px Arial";
+    ctx.fillText("PIANO TILES", 300, 100);
+
+    ctx.font = "22px Arial";
+    ctx.fillText("F   G   H   J", 300, 145);
+
+    if (gameOver) {
+        ctx.font = "bold 30px Arial";
+        ctx.fillText("Score: " + score, 300, 290);
+    }
+
+    ctx.fillStyle = DARK;
+    ctx.fillRect(210, 340, 180, 60);
+
+    ctx.fillStyle = CREAM;
+    ctx.font = "bold 24px Arial";
+
+    if (gameOver) {
+        ctx.fillText("REPLAY", 300, 380);
+    } else {
+        ctx.fillText("PLAY", 300, 380);
+    }
+}
+
+document.addEventListener("keydown", function(event) {
+    let key = event.key.toLowerCase();
+    let lane = keys.indexOf(key);
+
+    if (lane !== -1) {
+        pressLane(lane);
+    }
+});
+
+canvas.addEventListener("click", function(event) {
+    let rect = canvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
+
+    if (!playing) {
+        if (x >= 210 && x <= 390 && y >= 340 && y <= 400) {
+            startGame();
+        }
+
+        return;
+    }
+
+    let lane = Math.floor(x / laneWidth);
+
+    if (lane >= 0 && lane < 4) {
+        pressLane(lane);
+    }
+});
+
+function draw() {
+    drawBackground();
+    drawBoard();
+    drawTiles();
+    drawKeys();
+    drawScore();
+    drawMenu();
+}
+
+function gameLoop() {
+    update();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
+```
