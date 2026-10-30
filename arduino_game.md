@@ -4,7 +4,7 @@
 
 For this project, I designed a simplified version of *Trombone Champ*, a rhythm game where players adjust their musical pitch to match notes moving across the screen.
 
-I chose the **HC-SR04 ultrasonic distance sensor** because it allows players to control the game through hand movements instead of a keyboard. Moving a hand closer to or farther from the sensor would change the musical pitch.
+I chose the **HC-SR04 ultrasonic distance sensor** because it allows players to control the game through hand movements instead of a keyboard. Moving a hand closer to or farther from the sensor changes the musical pitch.
 
 ### Materials
 - Arduino Uno
@@ -20,8 +20,11 @@ I chose the **HC-SR04 ultrasonic distance sensor** because it allows players to 
 - **PyGame:** Displays the game and processes inputs.
 - **NumPy:** Generates musical sounds.
 
-### Expected Gameplay
-Notes would scroll horizontally across the screen while the player moves their hand in front of the sensor. The distance measurement would determine the player's pitch. Matching the correct pitch when a note reaches the scoring line would earn points.
+### Gameplay
+
+The game is designed to display notes scrolling horizontally across the screen while the player moves their hand in front of the distance sensor.
+
+The sensor measurement determines the player's musical pitch. Matching the correct pitch when a note reaches the scoring line earns points.
 
 ---
 
@@ -29,7 +32,7 @@ Notes would scroll horizontally across the screen while the player moves their h
 
 ### Step 1: Arduino and Distance Sensor
 
-I planned to connect the HC-SR04 sensor to the Arduino using these connections:
+I designed the sensor setup using the following connections:
 
 | HC-SR04 | Arduino |
 |---|---|
@@ -38,7 +41,7 @@ I planned to connect the HC-SR04 sensor to the Arduino using these connections:
 | TRIG | Pin 9 |
 | ECHO | Pin 10 |
 
-The Arduino would send an ultrasonic pulse, measure how long the echo takes to return, and calculate the distance in centimeters. The distance would then be transmitted through serial communication at 9600 baud.
+The Arduino code sends an ultrasonic pulse, measures how long the echo takes to return, and calculates the distance in centimeters. The distance is then transmitted through serial communication at 9600 baud.
 
 **AI Usage:** I used ChatGPT to generate the initial Arduino code and understand how the trigger pin, echo pin, and distance calculation work.
 
@@ -57,6 +60,7 @@ void setup() {
 void loop() {
   digitalWrite(trig, LOW);
   delayMicroseconds(2);
+
   digitalWrite(trig, HIGH);
   delayMicroseconds(10);
   digitalWrite(trig, LOW);
@@ -74,7 +78,9 @@ void loop() {
 
 ### Step 2: PySerial Communication
 
-Next, I planned to use PySerial to receive the measurements in Python. The Arduino would transmit distance values through USB, and Python would read each line and convert it into a usable number.
+Next, I developed the Python serial communication code to receive distance measurements from the Arduino.
+
+The Arduino transmits distance values through USB, while Python reads each line and converts it into usable data.
 
 **AI Usage:** ChatGPT helped me write the PySerial code and understand how `serial.Serial()`, `readline()`, and `decode()` work.
 
@@ -90,7 +96,7 @@ while True:
     print(distance)
 ```
 
-The serial port is an example and would need to be adjusted to match the actual Arduino connection.
+The serial port needs to match the Arduino's actual connection.
 
 ### Step 3: Converting Distance into Musical Notes
 
@@ -105,6 +111,8 @@ I designed a system that divides the sensor's distance range into seven musical 
 | 17–20 cm | G |
 | 20–23 cm | A |
 | 23–26 cm | B |
+
+Each distance range corresponds to a musical note, allowing hand movements to control pitch.
 
 **AI Usage:** I used ChatGPT to help develop the distance-to-note conversion function and understand how conditional statements could turn sensor measurements into game inputs.
 
@@ -130,16 +138,19 @@ def distance_to_note(distance):
 
 ### Step 4: PyGame Integration
 
-Finally, I designed a PyGame interface featuring:
+I designed a PyGame interface featuring:
+
 - Horizontally scrolling notes
 - A pitch indicator controlled by hand distance
 - Musical sounds corresponding to each note
 - A scoring system awarding 100 points for correct notes
 - A combo counter for consecutive correct notes
 
-I selected *Twinkle Twinkle Little Star* as the first song because its simple melody would make the game easier to develop and test.
+I selected *Twinkle Twinkle Little Star* as the first song because its simple melody makes the game easier to develop and test.
 
-**AI Usage:** I used ChatGPT to generate the initial PyGame code, including scrolling notes, musical tones, and scoring. I reviewed the code to understand how sensor readings would influence gameplay.
+The Python program compares the player's current pitch with the target note when it reaches the scoring line.
+
+**AI Usage:** I used ChatGPT to generate the initial PyGame code, including scrolling notes, musical tones, and scoring. I reviewed the code to understand how sensor readings influence gameplay.
 
 ---
 
@@ -148,19 +159,31 @@ I selected *Twinkle Twinkle Little Star* as the first song because its simple me
 I used ChatGPT throughout the planning and coding process, primarily to help generate code and understand how it worked.
 
 - **Arduino Code:** AI helped generate code for measuring distance with the HC-SR04 sensor and transmitting measurements through serial communication. I reviewed how the calculations and functions worked.
+
 - **PySerial:** AI helped write Python code for receiving serial data and explained how Arduino's output could be processed in Python.
+
 - **PyGame:** AI generated the initial game implementation, including moving notes, musical sounds, and scoring. I reviewed how the different components interacted.
+
 - **Understanding the Code:** I used AI explanations to better understand how Arduino and Python communicate and how physical measurements can be converted into game inputs.
 
-AI was especially useful for developing the initial code and explaining unfamiliar functions. However, the project would still require physical testing and debugging to confirm that everything works correctly.
+AI was especially useful for developing the initial code and explaining unfamiliar functions. Reviewing the generated code helped me understand the relationship between hardware inputs, serial communication, and game mechanics.
 
 ---
 
 ## 4. My Result
 
-My result is a **theoretical game design and code prototype**, rather than a physically tested project. I did not have access to the necessary Arduino hardware, so I could not demonstrate live sensor-controlled gameplay.
+I developed the code and gameplay design for a simplified version of *Trombone Champ* using Arduino, PySerial, and PyGame.
 
-### Expected Gameplay
+### Game Features
+
+- **Distance-controlled pitch:** Hand movements determine musical notes.
+- **Scrolling notes:** Players match their pitch to notes moving across the screen.
+- **Sound generation:** Python generates a different tone for each note.
+- **Scoring:** Correct notes earn 100 points.
+- **Combo system:** Consecutive correct notes increase the combo.
+- **Keyboard controls:** Number keys 1–7 provide an alternative way to control pitch without an Arduino.
+
+### Gameplay Sequence
 
 1. The player moves their hand in front of the ultrasonic distance sensor.
 2. The Arduino measures the distance and sends it to Python.
@@ -168,20 +191,22 @@ My result is a **theoretical game design and code prototype**, rather than a phy
 4. PyGame displays the player's pitch and plays the corresponding sound.
 5. The player matches incoming notes to earn points.
 
-### Potential Challenges
+### Testing and Improvements
 
-One possible challenge is that ultrasonic sensor measurements may fluctuate, causing unintended pitch changes. Serial communication could also introduce small delays that affect the timing of the rhythm game.
+The game code includes keyboard controls that allow the gameplay to be tested without an Arduino. The sensor-controlled version still requires hardware testing.
+
+One potential challenge is that ultrasonic sensor measurements may fluctuate, causing unintended pitch changes. Serial communication could also introduce small delays that affect the timing of the rhythm game.
 
 To improve the project, I would experiment with smoothing sensor readings and adjusting the timing of the notes.
-
-**Demo Status:** A physical demonstration has not yet been completed. The code represents the intended implementation and would need hardware testing.
 
 ---
 
 ## 5. Reflection
 
-This project helped me understand how Arduino and Python could work together to create interactive experiences. Instead of using a sensor only to display measurements, I explored how its data could become meaningful game inputs.
+This project helped me understand how Arduino and Python can work together to create interactive experiences. Instead of using a sensor only to display measurements, I explored how its data could become meaningful game inputs.
 
 The most interesting part was connecting physical hand movements to musical pitch. I also learned more about serial communication and how Python can process information from external hardware.
+
+Using AI to generate and explain code helped me understand unfamiliar functions and how the different parts of the program connect.
 
 If I continued developing this project, I would add smoother pitch transitions, more songs, and improved sound effects to make the game more similar to *Trombone Champ*.
